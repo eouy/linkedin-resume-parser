@@ -525,22 +525,47 @@ class Parser
      * @return array
      * @throws ParseException
      */
-    protected function buildRoleTypes(string $classType, array $roleLines): array
-    {
+    protected function buildRoleTypes(string $classType, array $roleLines
+    ): array {
+
         $roleTypes = [];
 
         $currentGroupIndex = 0;
         $roleGroups = [];
         $previousLineWasBold = false;
 
+        $previousLine = '';
+
         foreach ($roleLines as $key => $roleLine) {
+
+            $previousLine = isset($roleLines[$key - 1]) ? $roleLines[$key - 1]
+                : '';
 
             $roleLineText = $roleLine->getText();
 
-            if(preg_match('/\d{4} \s+-.*/', $roleLineText)) {
+            $roleLineText = str_replace("\xc2\xa0", ' ', $roleLineText);
+
+            if (preg_match('/\d{4} \s+-.*/', "" . $roleLineText)) {
                 $previousLineWasBold = false;
-                $roleGroups[$currentGroupIndex]['date'] = trim(preg_replace('/[\s\x00]/u', ' ', $roleLineText));
-            } elseif (preg_match('/ at /', $roleLineText) && $roleLine->isBold()) {
+                $date = trim(
+                    preg_replace('/[\s\x00]/u', ' ', $roleLineText)
+                );
+
+                $roleGroups[$currentGroupIndex]['date'] = $date;
+
+                if ( ! isset($roleGroups[$currentGroupIndex]['title'])
+                    || ! $roleGroups[$currentGroupIndex]['title']
+                ) {
+                    $roleGroups[$currentGroupIndex] = [
+                        'title'   => $previousLine,
+                        'date'    => $date,
+                        'summary' => '',
+                    ];
+                }
+
+            } elseif (preg_match('/\sat\s/', "" . $roleLineText)
+                && strlen($roleLineText) < 100
+            ) {
                 $currentGroupIndex += 1;
                 $roleGroups[$currentGroupIndex] = [
                     'title'   => '',
@@ -549,46 +574,37 @@ class Parser
                 ];
                 $roleGroups[$currentGroupIndex]['title'] .= $roleLineText;
                 $previousLineWasBold = true;
-            } elseif ( ! preg_match('/^\(.*\)$/', $roleLineText) && !preg_match('/Page/', $roleLineText) && strlen($roleLineText) > 1) { // This indicates the duration, so skip it.
+            } elseif ( ! preg_match('/^\(.*\)$/', $roleLineText)
+                && ! preg_match('/Page/', $roleLineText)
+                && strlen($roleLineText) > 1
+            ) { // This indicates the duration, so skip it.
                 $previousLineWasBold = false;
-                $roleGroups[$currentGroupIndex]['summary'] .= $roleLineText . '\r\n';
+                if (isset($roleGroups[$currentGroupIndex])) {
+                    $roleGroups[$currentGroupIndex]['summary'] .= $roleLineText
+                        . '\r\n';
+                }
+            } else {
+                $roleGroups[$currentGroupIndex]['summary'] = '';
             }
-            //--------Original code ----------------
-            // if (preg_match('/\s{2}-\s{2}/', $roleLineText)) {
-            //     $previousLineWasBold = false;
-            //     $roleGroups[$currentGroupIndex]['date'] = $roleLineText;
-            // } elseif ($roleLine->isBold()) {
-            //     if ( ! $previousLineWasBold) {
-            //         $currentGroupIndex += 1;
-            //         $roleGroups[$currentGroupIndex] = [
-            //             'title'   => '',
-            //             'date'    => '',
-            //             'summary' => '',
-            //         ];
-            //     }
-            //     $roleGroups[$currentGroupIndex]['title'] .= ' ' . $roleLineText;
-            //     $previousLineWasBold = true;
-            // } elseif ( ! preg_match('/^\(.*\)$/', $roleLineText)) { // This indicates the duration, so skip it.
-            //     $previousLineWasBold = false;
-            //     $roleGroups[$currentGroupIndex]['summary'] .= $roleLineText . '\r\n';
-            // }
         }
 
         foreach ($roleGroups as $roleGroup) {
             /** @var RoleInterface $roleType */
             $roleType = new $classType();
-            if($roleGroup['title']) {
-                list($title, $organisation) = $this->parseRoleParts($roleGroup['title']);
+            if ($roleGroup['title']) {
+                list($title, $organisation) = $this->parseRoleParts(
+                    $roleGroup['title']
+                );
 
-                $roleType
-                    ->setTitle($title)
+                $roleType->setTitle($title)
                     ->setOrganisation($organisation);
 
                 if ($roleGroup['date']) {
-                    list($start, $end) = $this->parseDateRange($roleGroup['date'], ' - ');
+                    list($start, $end) = $this->parseDateRange(
+                        $roleGroup['date'], ' - '
+                    );
 
-                    $roleType
-                        ->setStart($start)
+                    $roleType->setStart($start)
                         ->setEnd($end);
                 }
 
