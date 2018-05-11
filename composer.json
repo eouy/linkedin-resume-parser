@@ -1,5 +1,5 @@
 {
-    "name": "akhileshdarjee/linkedin-resume-parser",
+    "name": "charl4e/linkedin-resume-parser",
     "type": "library",
     "description": "Parses LinkedIn PDF resumes from recruitment portal into a set of usable entities",
     "keywords": [
@@ -12,8 +12,8 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Akhilesh Darjee",
-            "email": "akhileshdarjee@gmail.com"
+            "name": "Charl Fourie",
+            "email": "charl4e@gmail.com"
         }
     ],
     "require": {
