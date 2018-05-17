@@ -371,7 +371,7 @@ class Parser
             $splitted = $fullName;
         }
 
-        if (count($splitted) > 0) {
+        if (is_array($splitted) && count($splitted) > 0) {
             $surname = explode($name, $fullName)[1];
         } else {
             $surname = explode(' ', $fullName)[1];
