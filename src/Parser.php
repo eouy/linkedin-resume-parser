@@ -135,6 +135,13 @@ class Parser
 
             // Check if their latest role has ended, i.e. it is not their current role
             $latestRole = reset($roles);
+
+            if(!$latestRole) {
+                throw new ParseException(
+                    "getEnd() error. Probably not a linkedin profile"
+                );
+            }
+
             if ($latestRole->getEnd() === null) {
                 // Remove it from our list since we're setting previous roles
                 array_shift($roles);
