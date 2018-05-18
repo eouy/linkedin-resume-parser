@@ -596,7 +596,7 @@ class Parser
                 $previousLineWasBold = false;
                 if (isset($roleGroups[$currentGroupIndex])) {
                     $roleGroups[$currentGroupIndex]['summary'] .= $roleLineText
-                        . '\r\n';
+                        . ' ';
                 }
             } else {
                 $roleGroups[$currentGroupIndex]['summary'] = '';
