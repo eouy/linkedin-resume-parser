@@ -552,10 +552,13 @@ class Parser
 
             $roleLineText = str_replace("\xc2\xa0", ' ', $roleLineText);
 
-            if (preg_match('/\d{4} \s+-.*/', "" . $roleLineText)) {
+            if (preg_match(
+                '/([a-z]+\s[0-9]{4})\s+?-\s+(present|(?:[a-z]+\s[0-9]{4}))/i',
+                "" . $roleLineText, $lineAr
+            )) {
                 $previousLineWasBold = false;
                 $date = trim(
-                    preg_replace('/[\s\x00]/u', ' ', $roleLineText)
+                    preg_replace('/[\s\x00]/u', ' ', $lineAr[0])
                 );
 
                 $roleGroups[$currentGroupIndex]['date'] = $date;
@@ -572,6 +575,10 @@ class Parser
 
             } elseif (preg_match('/\sat\s/', "" . $roleLineText)
                 && strlen($roleLineText) < 100
+                && (isset($roleLines[$key+1]) && !preg_match(
+                    '/([a-z]+\s[0-9]{4})\s+?-\s+(present|(?:[a-z]+\s[0-9]{4}))/i',
+                    "" . $roleLines[$key+1]
+                ))
             ) {
                 $currentGroupIndex += 1;
                 $roleGroups[$currentGroupIndex] = [
@@ -581,7 +588,8 @@ class Parser
                 ];
                 $roleGroups[$currentGroupIndex]['title'] .= $roleLineText;
                 $previousLineWasBold = true;
-            } elseif ( ! preg_match('/^\(.*\)$/', $roleLineText)
+            } elseif ( ! preg_match('/^\(.*\)$/',
+                    $roleLineText)
                 && ! preg_match('/Page/', $roleLineText)
                 && strlen($roleLineText) > 1
             ) { // This indicates the duration, so skip it.
