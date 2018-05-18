@@ -777,12 +777,14 @@ class Parser
                 $activitiesAndSocieties = $educationLines[$i + 1];
                 // Modify the index to skip any lines we process here
                 $i++;
-                // And there may be more lines that start with a space that should be appended to the activities
+                $counter = $i + 1;
                 for ($activitiesAndSocietiesIndex = $i + 1; $activitiesAndSocietiesIndex < count($educationLines); $activitiesAndSocietiesIndex++) {
                     if (preg_match('/^\s(.*)$/', $educationLines[$activitiesAndSocietiesIndex])) {
                         $activitiesAndSocieties .= $educationLines[$activitiesAndSocietiesIndex];
                         $i++;
+                        $counter++;
                     } else {
+                        $i = $counter;
                         break;
                     }
                 }
