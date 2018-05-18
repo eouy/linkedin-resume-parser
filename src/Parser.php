@@ -736,8 +736,8 @@ class Parser
 
         for ($i = 0; $i < count($educationLines); $i++) {
 
-            $educationLine = $educationLines[$i];
-
+            $educationLine = str_replace("\xc2\xa0", ' ', $educationLines[$i]);
+            
             /** @var EducationEntry $educationEntry */
 
             if (preg_match('/(.*?)\,\s(.*?)\,\s(\d{4})\s-\s(\d{4})$/', $educationLine, $matches)) { // "Bachelor of Arts, Theatre Management, 2006 - 2010"
