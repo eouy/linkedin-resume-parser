@@ -1,5 +1,7 @@
 # LinkedIn Resume Parser
 
+## Please note: Linkedin updated the layout of downloadable pdfs. This parser will not work with the new layout (blue bar on the left)
+
 This library parses LinkedIn PDF resumes from Recruiter portal into a set of PHP entities. The entities are based on the various sections
 found in each resume, making it easy to extract information such as current / previous roles, education history,
 certifications etc.
