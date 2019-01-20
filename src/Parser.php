@@ -3,6 +3,7 @@
 namespace LinkedInResumeParser;
 
 use DateTime;
+use IntlDateFormatter;
 use LinkedInResumeParser\Exception\FileNotFoundException;
 use LinkedInResumeParser\Exception\FileNotReadableException;
 use LinkedInResumeParser\Exception\ParseException;
