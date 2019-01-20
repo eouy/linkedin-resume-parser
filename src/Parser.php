@@ -77,6 +77,13 @@ class Parser
         self::URL
     ];
 
+    protected $dateFormatter = null;
+    
+    public function __construct($locale = 'fr_FR.UTF-8', $pattern = 'dd MMMM yyyy')
+    {
+        $this->dateFormatter = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, null, null, $pattern);
+    }
+
     /**
      * @param string $filePath
      * @param array  $sections
@@ -642,7 +649,7 @@ class Parser
      */
     protected function parseRoleParts(string $roleLine): array
     {
-        $roleParts = $this->splitAndTrim(' at ', $roleLine);
+        $roleParts = $this->splitAndTrim([' at ', ' chez '], $roleLine);
 
         if (count($roleParts) === 2) {
             return $roleParts;
@@ -663,11 +670,11 @@ class Parser
      *
      * @return array
      */
-    protected function splitAndTrim(string $delimiter, string $string): array
+    protected function splitAndTrim(mixed $delimiter, string $string): array
     {
         return array_map(
             'trim',
-            explode($delimiter, $string)
+            is_array($delimiter) ? preg_split('/' . implode('|', $delimiter) . '/', $string) : explode($delimiter, $string)
         );
     }
 
@@ -710,6 +717,9 @@ class Parser
     protected function parseStringToDateTime(string $string): DateTime
     {
         if (preg_match('/\w{1,}\s\d{4}/', $string)) {
+            $time = $this->dateFormatter->parse('01 ' . $string);
+            if($time)
+                return new DateTime('@' .$time);
             return DateTime::createFromFormat('H:i:s d F Y', '00:00:00 01 ' . $string);
         } elseif (preg_match('/\d{4}/', $string)) {
             return DateTime::createFromFormat('H:i:s d m Y', '00:00:00 01 01 ' . $string);
