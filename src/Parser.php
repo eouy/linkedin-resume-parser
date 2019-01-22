@@ -671,7 +671,7 @@ class Parser
      *
      * @return array
      */
-    protected function splitAndTrim(mixed $delimiter, string $string): array
+    protected function splitAndTrim($delimiter, string $string): array
     {
         return array_map(
             'trim',
