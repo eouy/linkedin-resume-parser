@@ -686,7 +686,7 @@ class Parser
      * @return array
      * @throws ParseException
      */
-    protected function parseDateRange(string $datesLine, string $delimiter): array
+    protected function parseDateRange(string $datesLine, $delimiter): array
     {
         $dateParts = $this->splitAndTrim($delimiter, $datesLine);
 
@@ -694,7 +694,7 @@ class Parser
 
             $startDateTime = $this->parseStringToDateTime($dateParts[0]);
 
-            if ($dateParts[1] === 'Present') {
+            if (in_array($dateParts[1], ['Present', 'Poste actuel']) ) {
                 $endDateTime = null;
             } else {
                 $endDateTime = $this->parseStringToDateTime($dateParts[1]);
@@ -856,13 +856,13 @@ class Parser
      */
     protected function addCertificationParts(Certification $certification, string $textLine): Certification
     {
-        if (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,4}(.*?\s\d{4})\sto\s(.*\d{4}$)/', $textLine, $matches)) {
+        if (preg_match('/(.*?)\s{1,3}(?:License|Licence)\s(.*?)\s{1,4}(.*?\s\d{4})\s(?:to|à)\s(.*\d{4}$)/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2])
                 ->setObtainedOn($this->parseStringToDateTime($matches[3]))
                 ->setValidUntil($this->parseStringToDateTime($matches[4]));
-        } elseif (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,4}(.*?\s\d{4}$)/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{1,3}(?:License|Licence)\s(.*?)\s{1,4}(.*?\s\d{4}$)/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2])
@@ -871,7 +871,7 @@ class Parser
             $certification
                 ->setAuthority($matches[1])
                 ->setObtainedOn($this->parseStringToDateTime($matches[2]));
-        } elseif (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,3}$/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{1,3}(?:License|Licence)\s(.*?)\s{1,3}$/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2]);
@@ -947,8 +947,8 @@ class Parser
                 }
                 $organization = (new Organization())->setName($organizationLineText);
                 $previousLineType = 'name';
-            } elseif (preg_match('/^\w+\s\d{4}\sto\sPresent$/', $organizationLineText) || preg_match('/^\w+\s\d{4}\sto\s\w+\s\d{4}$/', $organizationLineText)) {
-                list($start, $end) = $this->parseDateRange($organizationLineText, ' to ');
+            } elseif (preg_match('/^\w+\s\d{4}\s(?:to|à)\s(?:Present|Poste actuel)$/', $organizationLineText) || preg_match('/^\w+\s\d{4}\s(?:to|à)\s\w+\s\d{4}$/', $organizationLineText)) {
+                list($start, $end) = $this->parseDateRange($organizationLineText, [' to ', ' à ']);
                 $organization
                     ->setStart($start)
                     ->setEnd($end);
@@ -1097,12 +1097,12 @@ class Parser
 
                 $previousLineType = 'name';
             } elseif (
-                preg_match('/^\w+\s\d{4}\sto\sPresent$/', $projectLineText) ||
-                preg_match('/^\w+\s\d{4}\sto\s\w+\s\d{4}$/', $projectLineText) ||
-                preg_match('/^\d{4}\sto\s\d{4}$/', $projectLineText) ||
-                preg_match('/^\d{4}\sto\sPresent$/', $projectLineText)
+                preg_match('/^\w+\s\d{4}\s(?:to|à)\sPresent$/', $projectLineText) ||
+                preg_match('/^\w+\s\d{4}\s(?:to|à)\s\w+\s\d{4}$/', $projectLineText) ||
+                preg_match('/^\d{4}\s(?:to|à)\s\d{4}$/', $projectLineText) ||
+                preg_match('/^\d{4}\s(?:to|à)\sPresent$/', $projectLineText)
             ) {
-                list($start, $end) = $this->parseDateRange($projectLineText, ' to ');
+                list($start, $end) = $this->parseDateRange($projectLineText, [' to ', ' à ']);
                 $project
                     ->setStart($start)
                     ->setEnd($end);
