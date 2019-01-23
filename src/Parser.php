@@ -561,7 +561,7 @@ class Parser
             $roleLineText = str_replace("\xc2\xa0", ' ', $roleLineText);
 
             if (preg_match(
-                '/([a-z]+\s[0-9]{4})\s+?-\s+(present|(?:[a-z]+\s[0-9]{4}))/i',
+                '/([a-zéû]+\s[0-9]{4})\s+?-\s+(present|(?:[a-zéû]+\s[0-9]{4}))/i',
                 "" . $roleLineText, $lineAr
             )) {
                 $previousLineWasBold = false;
@@ -584,7 +584,7 @@ class Parser
             } elseif (preg_match('/\sat\s/', "" . $roleLineText)
                 && strlen($roleLineText) < 100
                 && (isset($roleLines[$key+1]) && !preg_match(
-                    '/([a-z]+\s[0-9]{4})\s+?-\s+(present|(?:[a-z]+\s[0-9]{4}))/i',
+                    '/([a-zéû]+\s[0-9]{4})\s+?-\s+(present|(?:[a-zéû]+\s[0-9]{4}))/i',
                     "" . $roleLines[$key+1]
                 ))
             ) {
@@ -717,16 +717,19 @@ class Parser
      */
     protected function parseStringToDateTime(string $string): DateTime
     {
-        if (preg_match('/\w{1,}\s\d{4}/', $string)) {
+        $date = false;
+        if (preg_match('/[\wéû]{1,}\s\d{4}/', $string)) {
             $time = $this->dateFormatter->parse('01 ' . $string);
             if($time)
-                return new DateTime('@' .$time);
-            return DateTime::createFromFormat('H:i:s d F Y', '00:00:00 01 ' . $string);
+                $date = new DateTime('@' .$time);
+            else
+                $date = DateTime::createFromFormat('H:i:s d F Y', '00:00:00 01 ' . $string);
         } elseif (preg_match('/\d{4}/', $string)) {
-            return DateTime::createFromFormat('H:i:s d m Y', '00:00:00 01 01 ' . $string);
-        } else {
-            throw new ParseException("Unable to parse a valid date time from '${string}'");
+            $date = DateTime::createFromFormat('H:i:s d m Y', '00:00:00 01 01 ' . $string);
         }
+        if($date)
+            return $date;
+        throw new ParseException("Unable to parse a valid date time from '${string}'");
     }
 
     /**
@@ -853,26 +856,26 @@ class Parser
      */
     protected function addCertificationParts(Certification $certification, string $textLine): Certification
     {
-        if (preg_match('/(.*?)\s{3}License\s(.*?)\s{4}(.*?\s\d{4})\sto\s(.*\d{4}$)/', $textLine, $matches)) {
+        if (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,4}(.*?\s\d{4})\sto\s(.*\d{4}$)/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2])
                 ->setObtainedOn($this->parseStringToDateTime($matches[3]))
                 ->setValidUntil($this->parseStringToDateTime($matches[4]));
-        } elseif (preg_match('/(.*?)\s{3}License\s(.*?)\s{4}(.*?\s\d{4}$)/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,4}(.*?\s\d{4}$)/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2])
                 ->setObtainedOn($this->parseStringToDateTime($matches[3]));
-        } elseif (preg_match('/(.*?)\s{3}\s{4}(.*?\s\d{4}$)/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{1,7}(.*?\s\d{4}$)/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setObtainedOn($this->parseStringToDateTime($matches[2]));
-        } elseif (preg_match('/(.*?)\s{3}License\s(.*?)\s{3}$/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{1,3}License\s(.*?)\s{1,3}$/', $textLine, $matches)) {
             $certification
                 ->setAuthority($matches[1])
                 ->setLicense($matches[2]);
-        } elseif (preg_match('/(.*?)\s{6,}$/', $textLine, $matches)) {
+        } elseif (preg_match('/(.*?)\s{4,}$/', $textLine, $matches)) {
             $certification->setAuthority($matches[1]);
         } else {
             throw new ParseException("Unable to parse certification parts from the string ${textLine}");
@@ -994,7 +997,7 @@ class Parser
                 }
                 $honorAward = (new HonorAward())->setTitle($honorsAndAwardsLineText);
                 $previousLineType = 'title';
-            } elseif (preg_match('/^\w{1,}\s\d{4}$/', $honorsAndAwardsLineText)) {
+            } elseif (preg_match('/^[\wéû]{1,}\s\d{4}$/', $honorsAndAwardsLineText)) {
                 $honorAward->setDate($this->parseStringToDateTime($honorsAndAwardsLineText));
                 $previousLineType = 'date';
             } elseif ($previousLineType === 'title') {
